@@ -14,7 +14,7 @@ local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Qing-Yun-D
 
 local Win = UI:Window("by:codm656558 | Guts & Blackpower | 注入器 : "..identifyexecutor(), Color3.fromRGB(44, 120, 224))
 
-local Tab = Win:Tab("主要")
+local Tab = Win:Tab("Main")
 
 -- 辅助函数：获取玩家当前武器
 local function GetGun()
@@ -77,9 +77,6 @@ local RangeCircle = false -- 范围圈开关
 local RangeCircleRadius = 10 -- 范围圈半径
 local RangeCirclePart = nil -- 范围圈可视化部分
 local AutoShootFrequency = 0.8 -- 自动射击检测频率，默认0.8秒
-local lastFrequencyValue = 8 -- 上一次的频率显示值
-local lastDistanceValue = 10 -- 上一次的距离显示值
-local lastCircleValue = 10 -- 上一次的范围圈显示值
 
 -- 创建范围圈可视化（圆形）
 local function CreateRangeCircle()
@@ -190,7 +187,7 @@ local function CreateAutoShootToggle()
     AutoShootToggle = Tab:Toggle("自动黑枪", false, function(Value)
         if Value then
             AutoShootMode = 1
-            Notify("启用自动黑枪(没自爆的地方建议关掉🤫)")
+            Notify("启用自动黑枪")
         end
     end)
 end
@@ -264,52 +261,31 @@ Tab:Toggle("启用自动黑枪", false, function(Value)
     end
 end)
 
--- 自动射击检测频率调节（修改显示逻辑：显示1对应0.1，显示8对应0.8）
-Tab:Slider("自动黑枪检测频率(除外10就是实际数字.越低越卡但秒发射，还有十几帧，能玩)", 1, 10, 8, function(Value)
-    -- 转换为实际频率：显示值/10
-    local actualFrequency = Value / 10
-    
-    -- 只有当值改变时才显示提示
-    if Value ~= lastFrequencyValue then
-        AutoShootFrequency = actualFrequency
-        Notify("自动黑枪检测频率设置为: " .. Value .. " (实际" .. string.format("%.1f", actualFrequency) .. "秒)")
-        lastFrequencyValue = Value
-    end
+-- 自动射击检测频率调节
+Tab:Slider("自动黑枪检测频率(有些问题，看着调)", 0.1, 1, 0.8, function(Value)
+    AutoShootFrequency = Value
+    Notify("自动黑枪检测频率设置为: " .. string.format("%.1f", Value) .. " 秒")
 end)
 
--- 添加距离滑动模块（修改显示逻辑：显示3对应实际1，显示9对应实际3）
-Tab:Slider("队友靠近Barrel距离(除3就是实际数字，轮椅脚本爱用不用)", 3, 150, 30, function(Value)
-    -- 转换为实际距离：显示值/3
-    local actualDistance = Value / 3
-    
-    -- 只有当值改变时才显示提示
-    if Value ~= lastDistanceValue then
-        BarrelShootDistance = actualDistance
-        Notify("队友靠近Barrel距离设置为: " .. Value .. " studs (实际" .. string.format("%.1f", actualDistance) .. " studs)")
-        lastDistanceValue = Value
-    end
+-- 添加距离滑动模块
+Tab:Slider("队友靠近Barrel距离", 1, 50, 10, function(Value)
+    BarrelShootDistance = Value
+    Notify("队友靠近Barrel距离设置为: " .. Value .. " studs")
 end)
 
--- 范围圈大小调节（修改显示逻辑：显示3对应实际1，显示9对应实际3）
-Tab:Slider("范围圈大小(除3)", 15, 450, 30, function(Value)
-    -- 转换为实际半径：显示值/3
-    local actualRadius = Value / 3
+-- 范围圈大小调节
+Tab:Slider("范围圈大小", 5, 150, 10, function(Value)
+    RangeCircleRadius = Value
+    Notify("范围圈大小设置为: " .. Value .. " studs")
     
-    -- 只有当值改变时才显示提示
-    if Value ~= lastCircleValue then
-        RangeCircleRadius = actualRadius
-        Notify("范围圈大小设置为: " .. Value .. " studs (实际" .. string.format("%.1f", actualRadius) .. " studs)")
-        lastCircleValue = Value
-        
-        -- 更新范围圈大小
-        if RangeCirclePart then
-            RangeCirclePart.Size = Vector3.new(0.1, RangeCircleRadius * 2, RangeCircleRadius * 2)
-        end
+    -- 更新范围圈大小
+    if RangeCirclePart then
+        RangeCirclePart.Size = Vector3.new(0.1, RangeCircleRadius * 2, RangeCircleRadius * 2)
     end
 end)
 
 -- 墙体检测开关
-Tab:Toggle("墙体检测(78检测，开了用不了自动黑枪)", false, function(Value)
+Tab:Toggle("墙体检测", false, function(Value)
     WallCheck = Value
     wallCheckEnabled = Value
     Notify("墙体检测: " .. (Value and "开启" or "关闭"))
@@ -935,9 +911,6 @@ Tab:Toggle("无头骑士透视", false, function(Value)
     end
 end)
 
--- 创建新的"杂项实用功能"分区
-local UtilityTab = Win:Tab("杂项实用功能")
-
 -- 大头娃娃功能
 local bigHeadEnabled = false
 local bigHeadConnection = nil
@@ -969,7 +942,7 @@ local function processBigHead()
     end
 end
 
-UtilityTab:Toggle("大头僵尸", false, function(Value)
+Tab:Toggle("大头僵尸", false, function(Value)
     bigHeadEnabled = Value
     Notify("大头僵尸: " .. (Value and "开启" or "关闭"))
     
@@ -1024,7 +997,7 @@ local function preventFallDamage()
     end
 end
 
-UtilityTab:Toggle("移除摔伤", false, function(Value)
+Tab:Toggle("移除摔伤", false, function(Value)
     noFallDamageEnabled = Value
     Notify("移除摔伤: " .. (Value and "开启" or "关闭"))
     
@@ -1040,12 +1013,12 @@ UtilityTab:Toggle("移除摔伤", false, function(Value)
     end
 end)
 
-local Tab = Win:Tab("本地玩家")
+local Tab = Win:Tab("Player")
 
 local Speed = 0
 local JumpPower = 30
 
-Tab:Toggle("无限跳(先打开修改跳跃)", false, function(Value)
+Tab:Toggle("Infinite Jump", false, function(Value)
     if Value then
         InfiniteJump = game:GetService("UserInputService").JumpRequest:Connect(function()
             game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping")
@@ -1057,7 +1030,7 @@ Tab:Toggle("无限跳(先打开修改跳跃)", false, function(Value)
     end
 end)
 
-Tab:Toggle("修改速度", false, function(Value)
+Tab:Toggle("Enable Speed", false, function(Value)
     if Value then
         EnableSpeed = game:GetService("RunService").Heartbeat:Connect(function()
             if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -1071,7 +1044,7 @@ Tab:Toggle("修改速度", false, function(Value)
     end
 end)
 
-Tab:Toggle("修改跳跃", false, function(Value)
+Tab:Toggle("Enable Jump", false, function(Value)
     if Value then
         EnableJump = game:GetService("RunService").RenderStepped:Connect(function()
             if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -1096,9 +1069,9 @@ Tab:Slider("Jump Power", 30, 100, 0, function(Value)
     JumpPower = Value
 end)
 
-local Tab = Win:Tab("关闭")
+local Tab = Win:Tab("Misc")
 
-Tab:Button("关闭脚本(请先关闭功能)", function()
+Tab:Button("Close UI", function()
     game.CoreGui.VisionLibV2:Destroy()
     game.CoreGui.VisionLibOverlay:Destroy()
     if game:GetService("UserInputService").KeyboardEnabled and game:GetService("UserInputService").MouseEnabled then
